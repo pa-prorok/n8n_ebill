@@ -1,0 +1,1100 @@
+{
+  "name": "Ebill",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "allowFileUploads": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -352,
+        -32
+      ],
+      "id": "c23b98cd-1e4a-4224-a31f-ddf094aefd23",
+      "name": "When chat message received",
+      "webhookId": "c5b494fb-d982-49e4-8753-88942c0733bb"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "type": "file",
+              "fileType": "base64",
+              "binaryPropertyName": "data0",
+              "fileName": "data0"
+            },
+            {
+              "role": "system",
+              "content": "Du bist ein präziser Dokumenten-Extractor. \nAnalysiere die beigefügte PDF (Auftrag/Trainervertrag) und gib ausschließlich die folgenden drei Felder zurück\n – jeweils mit exaktem Wortlaut aus dem Dokument. Ziel-Felder Honorar: Betrag mit Dezimalpunkt, z. B. „3200.00“ \n Datum/Zeitraum der Veranstaltungsdurchführung: die Zeile mit „Termin(e): …“ inkl. Datum und Uhrzeit (Start–Ende) \n Nummer des Trainings / Trainingsnummer / Kennziffer: Das ist NICHT eine lange technische Dokument-ID mit vielen Unterstrichen oder Sonderzeichen. \n Sie steht typischerweise in der Nähe der Termin-Zeile und sieht aus wie ein kurzer Code mit Segmenten, \n z. B. „L QS QS2 2408“. Regel: Wähle als Trainingsnummer den Code, \n der aus durch Leerzeichen getrennten Blöcken besteht und mit einem Buchstabenblock beginnt \n (häufig „L …“) und am Ende eine 4-stellige Zahl hat. Ausschließen: sehr lange Strings mit vielen „_“, „@“, „!“ \n oder gemischten technischen Präfixen (das sind Dokument-/Ablagekennungen, nicht die Trainingsnummer). \n Ausgabeformat (genau so, ohne Zusatztext) \n Bezeichnung: Honorar, Anzahl 1, Kosten je Einheit <Honorar> \n Veranstaltungsdurchführung: <Wert> \n Trainingsnummer: <Wert> \n Qualitätscheck Wenn mehrere Kandidaten für „Trainingsnummer“ existieren, gib nur denjenigen aus, \n der die oben genannte Struktur erfüllt (kurz, segmentiert, endet mit 4 Ziffern, z. B. „L QS QS2 2408“). \n "
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        -112,
+        -32
+      ],
+      "id": "6e2ec23e-1799-44ea-9416-7051185feff2",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "agmPabrHrnVxdRMU",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "={{ $json.chatInput }}"
+            },
+            {
+              "role": "system",
+              "content": "Du bist ein Assistent, der Nutzern dabei hilft Rechnungen zu erstellen. Deine Aufgabe ist es die Nutzerangaben maschinenlesbar zu machen. Erzeuge für jede vom Nutzer angegebene Position eine Zeile mit der folgenden Struktur:\nBezeichnung: <BEZEICHNUNG Position 1>, Anzahl <ANZAHL Position 1>, Kosten pro Einheit: <KOSTEN pro Einheit> Wenn der Nutzer keine Angaben zur Anzahl macht, dann gehe davon aus, dass die Anzahl 1 ist. Wenn der Nutzer eine Kilometerangabe für die Anfahrt macht, dann nutze 0.50 als Kosten und die Anzahl der km als Anzahl. Gib nur die Zeilen der Positionen aus, keinen weiteren Text"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        -112,
+        -224
+      ],
+      "id": "8ac0e41c-9ab8-47c1-96e8-895239838e39",
+      "name": "Message a model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "agmPabrHrnVxdRMU",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "={{ $json.output[0].content[0].text }}"
+            },
+            {
+              "role": "system",
+              "content": "SYSTEM:\n\nDu bist ein deterministischer XML-Renderer.\n\nREGELN (ABSOLUT VERBINDLICH):\n- Gib ausschließlich reinen XML-Code aus.\n- Vor dem ersten \"<\" darf kein Zeichen stehen.\n- Nach dem letzten \">\" darf kein Zeichen stehen.\n- Kein \"xml\", kein Markdown, kein Codeblock, kein Kommentar, kein erklärender Text.\n- Jede Abweichung von diesen Regeln gilt als FEHLER.\n\nEINGABEFORMAT:\nDer Nutzer liefert mehrere Zeilen im Format:\nBezeichnung: <Text>, Anzahl: <Zahl>, Kosten pro Einheit: <Zahl>\n\nAUFGABE:\nErzeuge für jede Zeile exakt folgende XML-Struktur:\n\n<cac:InvoiceLine>\n    <cbc:ID>POSITION</cbc:ID>\n    <cbc:InvoicedQuantity unitCode=\"C62\">ANZAHL</cbc:InvoicedQuantity>\n    <cbc:LineExtensionAmount currencyID=\"EUR\">GESAMTSUMME</cbc:LineExtensionAmount>\n    <cac:Item>\n        <cbc:Name>BEZEICHNUNG</cbc:Name>\n        <cac:ClassifiedTaxCategory>\n            <cbc:ID>E</cbc:ID>\n            <cbc:Percent>0</cbc:Percent>\n            <cac:TaxScheme>\n                <cbc:ID>VAT</cbc:ID>\n            </cac:TaxScheme>\n        </cac:ClassifiedTaxCategory>\n    </cac:Item>\n    <cac:Price>\n        <cbc:PriceAmount currencyID=\"EUR\">KOSTEN</cbc:PriceAmount>\n    </cac:Price>\n</cac:InvoiceLine>\n\nERSETZUNGSREGELN:\n- POSITION ist fortlaufend beginnend bei 1.\n- BEZEICHNUNG = Wert aus \"Bezeichnung\".\n- ANZAHL = Wert aus \"Anzahl\".\n- KOSTEN = Wert aus \"Kosten pro Einheit\".\n- GESAMTSUMME = ANZAHL * KOSTEN (numerisch berechnen).\n\nFORMATREGELN:\n- Verwende Dezimalpunkt, kein Komma.\n- Keine Rundung, keine Tausendertrennzeichen.\n- Keine zusätzlichen Leerzeilen vor oder nach dem XML.\n"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        1072,
+        -208
+      ],
+      "id": "d7f542a5-c171-42ed-9726-00cd762de750",
+      "name": "Message a model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "agmPabrHrnVxdRMU",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2e518965-e027-41d8-aa50-3869efaaf4c5",
+              "name": "output[0].content[0].text",
+              "value": "={{$items('Message a model1')[0].json.output[0].content[0].text +\"\\n\"+ $items('Message a model')[0].json.output[0].content[0].text}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        528,
+        -208
+      ],
+      "id": "ccf02d26-d2cd-47d4-86b5-7ba473d505c0",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "content": "Extract Honorar, time and training identifier from contract",
+        "height": 80
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -112,
+        96
+      ],
+      "id": "922964b3-ea45-4ef4-adcf-d5ea11fbbf47",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "Extract other billing positions from user input text",
+        "height": 80
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -112,
+        -336
+      ],
+      "id": "00d36439-d28f-4cb4-9f95-1b0b5c0422b0",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "Create billing positions from combined input",
+        "height": 80,
+        "width": 224
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        512,
+        -320
+      ],
+      "id": "1d8f51f9-d20b-423f-afae-9d31b676a66a",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "={{ \n  $now.toLocaleString('de-DE', {\n    day: '2-digit',\n    month: '2-digit',\n    year: 'numeric',\n    hour: '2-digit',\n    minute: '2-digit'\n  }) + ' ' + Math.floor(Math.random()*999).toString()\n}}\n"
+            },
+            {
+              "role": "system",
+              "content": "Deine Augabe ist es Datumsangaben zu erstellen. Der Nutzer versorgt dich mit dem aktuellen Datum dd/mm/yyyy (dd für Tage, mm für Monate und yyyy für das Jahr) und einer Zufallszahl (gekennzeichnet durch den Buchstaben R). Gib folgende Felder aus:\nDatum: dd.mm.yyyy\nRechnungsid: yyyymmdd-R\nErstelle keinen zusätzlichen Text, nur die angegebenen Felder sollen ausgegeben werden"
+            },
+            {
+              "content": "={{ String(Math.floor(Math.random()*999)) }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        -96,
+        -576
+      ],
+      "id": "0645f053-002f-4691-a1a0-073273fc12f1",
+      "name": "Message a model3",
+      "credentials": {
+        "openAiApi": {
+          "id": "agmPabrHrnVxdRMU",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "Create billing ID and current date",
+        "height": 96,
+        "width": 224
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        -704
+      ],
+      "id": "1cb2a683-c5bc-4392-989d-78237ff714e4",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9aed236f-6f05-41f4-bbbd-c266dacb6b45",
+              "name": "output[0].content[0].text",
+              "value": "={{$items('Message a model')[0].json.output[0].content[0].text +\"\\n\"+ $items('Message a model3')[0].json.output[0].content[0].text}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        544,
+        -560
+      ],
+      "id": "1a9e476f-5c43-4f2e-9a7e-dbd8dea43f52",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        288,
+        -560
+      ],
+      "id": "d5bc44dd-6dca-43e9-95d1-de884c2c965b",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "={{ $json.output[0].content[0].text }}"
+            },
+            {
+              "role": "system",
+              "content": "Du bist ein deterministischer XML-Renderer.\n\nREGELN (ABSOLUT VERBINDLICH):\n- Gib ausschließlich reinen XML-Code aus.\n- Die Ausgabe muss mit \"<?xml\" beginnen – ohne Leerzeichen, ohne Präfix, ohne \"xml\\n\".\n- Vor dem ersten \"<\" darf kein Zeichen stehen.\n- Nach dem letzten \">\" darf kein Zeichen stehen.\n- Keine Erklärungen, kein Markdown, kein Codeblock, kein Kommentar.\n- Wenn du gegen eine dieser Regeln verstößt, gilt die Antwort als FEHLER.\n\nAUFGABE:\nDer Nutzer liefert Platzhalterwerte.\nErsetze NUR folgende Platzhalter im XML-Template:\n\n<cbc:ID>Platzhalter</cbc:ID>              → RechnungsID\n<cbc:IssueDate>Platzhalter</cbc:IssueDate> → Datum im Format yyyy-mm-dd\n<cbc:BuyerReference>Platzhalter</cbc:BuyerReference> → Trainingsnummer\n\nFüge keine neuen Tags hinzu und ändere nichts anderes.\n\nXML-Template:\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<ubl:Invoice xmlns:ubl=\"urn:oasis:names:specification:ubl:schema:xsd:Invoice-2\"\n             xmlns:cac=\"urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2\"\n             xmlns:cbc=\"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2\">\n    <cbc:CustomizationID>urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0</cbc:CustomizationID>\n<cbc:ProfileID>urn:fdc:peppol.eu:2017:poacc:billing:01:1.0</cbc:ProfileID>\n    <cbc:ID>Platzhalter</cbc:ID>\n    <cbc:IssueDate>Platzhalter</cbc:IssueDate>\n\t\t<!-- code 380 bedeutet normale Rechnung -->\n    <cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode>\n    <!-- <cbc:Note></cbc:Note> -->\n    <cbc:DocumentCurrencyCode>EUR</cbc:DocumentCurrencyCode>\n    <cbc:BuyerReference>Platzhalter</cbc:BuyerReference>\n    <cac:AccountingSupplierParty>\n        <cac:Party>\n            <cbc:EndpointID schemeID=\"EM\">stefan.prorok@prophet-analytics.de</cbc:EndpointID>\n            <cac:PartyName>\n                <cbc:Name>Prophet Analytics GmbH</cbc:Name>\n            </cac:PartyName>\n            <cac:PostalAddress>\n                <cbc:StreetName>Ochsenwerder Landstraße 177</cbc:StreetName>\n                <cbc:CityName>Hamburg</cbc:CityName>\n                <cbc:PostalZone>21037</cbc:PostalZone>\n                <cac:Country>\n                    <cbc:IdentificationCode>DE</cbc:IdentificationCode>\n                </cac:Country>\n            </cac:PostalAddress>\n            <cac:PartyTaxScheme>\n                <cbc:CompanyID>DE 366374451</cbc:CompanyID>\n                <cac:TaxScheme>\n                    <cbc:ID>VAT</cbc:ID>\n                </cac:TaxScheme>\n            </cac:PartyTaxScheme>\n            <cac:PartyLegalEntity>\n                <cbc:RegistrationName>Prophet Analytics GmbH</cbc:RegistrationName>\n                <cbc:CompanyID>HRB 183746</cbc:CompanyID>\n                <cbc:CompanyLegalForm>44/752/00875, HRA-Eintrag in Hamburg</cbc:CompanyLegalForm>\n            </cac:PartyLegalEntity>\n            <cac:Contact>\n                <cbc:Name>Dr.-Ing. Stefan Prorok</cbc:Name>\n                <cbc:Telephone>+49 17621752632</cbc:Telephone>\n                <cbc:ElectronicMail>stefan.prorok@prophet-analytics.de</cbc:ElectronicMail>\n            </cac:Contact>\n        </cac:Party>\n    </cac:AccountingSupplierParty>\n    <cac:AccountingCustomerParty>\n        <cac:Party>\n            <cbc:EndpointID schemeID=\"EM\">info@dgq.de</cbc:EndpointID>\n            <cac:PartyIdentification>\n                <cbc:ID> DGQ Weiterbildung GmbH</cbc:ID>\n            </cac:PartyIdentification>\n            <cac:PostalAddress>\n                <cbc:StreetName>August-Schanz-Straße 21A</cbc:StreetName>\n                <cbc:CityName>Frankfurt am Main</cbc:CityName>\n                <cbc:PostalZone>60433</cbc:PostalZone>\n                <cac:Country>\n                    <cbc:IdentificationCode>DE</cbc:IdentificationCode>\n                </cac:Country>\n            </cac:PostalAddress>\n            <cac:PartyLegalEntity>\n                <cbc:RegistrationName>DGQ Weiterbildung gGmbH</cbc:RegistrationName>\n            </cac:PartyLegalEntity>\n        </cac:Party>\n    </cac:AccountingCustomerParty>\n\t    <cac:PaymentMeans>\n\t<!-- code 58 entspricht SEPA Überweisung -->\n        <cbc:PaymentMeansCode>58</cbc:PaymentMeansCode>\n        <cac:PayeeFinancialAccount>\n            <!-- dies ist eine nicht existerende aber valide IBAN als test dummy -->\n            <cbc:ID>DE75512108001245126199</cbc:ID>\n        </cac:PayeeFinancialAccount>\n    </cac:PaymentMeans>"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        1056,
+        -560
+      ],
+      "id": "04d83107-7781-4035-b827-2e3b33a24a49",
+      "name": "Message a model4",
+      "credentials": {
+        "openAiApi": {
+          "id": "agmPabrHrnVxdRMU",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        288,
+        -208
+      ],
+      "id": "c6fe1baa-a1ce-45d5-abe0-329fd532f752",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "={{ $json.output[0].content[0].text }}"
+            },
+            {
+              "role": "system",
+              "content": "SYSTEM:\n\nDu bist ein deterministischer Rechner.\n\nREGELN (ABSOLUT VERBINDLICH):\n- Gib Zahlen und Trennzeichen aus aus (keinen Text, kein XML, kein Markdown).\n- Vor der ersten Ziffer darf kein Zeichen stehen.\n- Nach jeder Zahl steht ein Leerzeichen\n- Dezimalpunkt verwenden (.), keine Kommas.\n- Immer genau zwei Nachkommastellen.\n- Jede Abweichung gilt als FEHLER.\n\nEINGABE:\nDer Nutzer liefert mehrere <cac:InvoiceLine>-Blöcke.\nJeder Block enthält:\n<cbc:LineExtensionAmount currencyID=\"EUR\">BETRAG</cbc:LineExtensionAmount>\n\nAUFGABE:\n- Extrahiere aus ALLEN InvoiceLines den numerischen Wert BETRAG.\n- Schreibe den Wert BETAG in den Output\n- füge nach jeder Zahl ein Leerzeichen als Trennzeichen ein"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        1488,
+        -144
+      ],
+      "id": "83d9536a-1826-4779-9d4d-86ef225d39de",
+      "name": "Message a model5",
+      "credentials": {
+        "openAiApi": {
+          "id": "agmPabrHrnVxdRMU",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "={{ String($json.sum) }}"
+            },
+            {
+              "role": "system",
+              "content": "SYSTEM:\n\nDu bist ein deterministischer XML-Renderer.\n\nREGELN (ABSOLUT VERBINDLICH):\n- Gib ausschließlich reinen XML-Code aus.\n- Vor dem ersten \"<\" darf kein Zeichen stehen.\n- Nach dem letzten \">\" darf kein Zeichen stehen.\n- Kein \"xml\", kein Markdown, kein Codeblock, kein erklärender Text.\n- Jede Abweichung von diesen Regeln gilt als FEHLER.\n\nEINGABE:\nDer Nutzer liefert genau einen Wert:\nSUMME: <Zahl mit zwei Nachkommastellen>\n\nAUFGABE:\nErsetze jedes \"SUMME\" in der folgenden Struktur exakt durch den übergebenen SUMME-Wert.\nÄndere sonst nichts.\n\nZU ERZEUGENDE XML-STRUKTUR:\n\n<cac:PaymentTerms>\n    <cbc:Note>Zahlbar sofort ohne Abzug.</cbc:Note>\n</cac:PaymentTerms>\n<cac:TaxTotal>\n    <cbc:TaxAmount currencyID=\"EUR\">0.00</cbc:TaxAmount>\n    <cac:TaxSubtotal>\n        <cbc:TaxableAmount currencyID=\"EUR\">SUMME</cbc:TaxableAmount>\n        <cbc:TaxAmount currencyID=\"EUR\">0.00</cbc:TaxAmount>\n        <cac:TaxCategory>\n            <cbc:ID>E</cbc:ID>\n            <cbc:Percent>0</cbc:Percent>\n            <cbc:TaxExemptionReason>VAT exempt according to §4 UStG</cbc:TaxExemptionReason>\n            <cac:TaxScheme>\n                <cbc:ID>VAT</cbc:ID>\n            </cac:TaxScheme>\n        </cac:TaxCategory>\n    </cac:TaxSubtotal>\n</cac:TaxTotal>\n<cac:LegalMonetaryTotal>\n    <cbc:LineExtensionAmount currencyID=\"EUR\">SUMME</cbc:LineExtensionAmount>\n    <cbc:TaxExclusiveAmount currencyID=\"EUR\">SUMME</cbc:TaxExclusiveAmount>\n    <cbc:TaxInclusiveAmount currencyID=\"EUR\">SUMME</cbc:TaxInclusiveAmount>\n    <cbc:PayableAmount currencyID=\"EUR\">SUMME</cbc:PayableAmount>\n</cac:LegalMonetaryTotal>\n"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        2048,
+        -144
+      ],
+      "id": "87bccd1f-046c-4d2b-8961-772c1d7aef22",
+      "name": "Message a model6",
+      "credentials": {
+        "openAiApi": {
+          "id": "agmPabrHrnVxdRMU",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "Create invoice items",
+        "height": 80,
+        "width": 208
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1072,
+        -320
+      ],
+      "id": "1734091f-10b9-4381-a2d7-4d7303dd301f",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "calculate total amount",
+        "height": 80,
+        "width": 176
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1776,
+        0
+      ],
+      "id": "9af54e03-daf9-4fc7-b226-f67e2e34b273",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "create Tax total block",
+        "height": 80,
+        "width": 224
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2048,
+        0
+      ],
+      "id": "a689249a-b29b-4b94-9014-f43f4e42e2e9",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2480,
+        -528
+      ],
+      "id": "41110a82-a519-4c8c-8b54-be6b1e51208b",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "89646283-40da-4266-b74b-d3c673dfeeb8",
+              "name": "output[0].content[0].text",
+              "value": "={{$items('Message a model4')[0].json.output[0].content[0].text\n  + \"\\n\"\n  + $items('Message a model6')[0].json.output[0].content[0].text\n  + \"\\n\"\n  + $items('Message a model2')[0].json.output[0].content[0].text\n  + \"\\n</ubl:Invoice>\\n\"\n}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2768,
+        -512
+      ],
+      "id": "f628bb94-a6c0-4f4c-b09a-d61dba8f7c47",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "content": "Create ebill header",
+        "height": 80,
+        "width": 192
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1072,
+        -672
+      ],
+      "id": "5e9c9a3d-4b7e-426a-b186-80b826482360",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "fromEmail": "playground@prophet-analytics.de",
+        "toEmail": "stefan.prorok@prophet-analytics.de",
+        "subject": "Mockup-Rechnung",
+        "html": "Sehr geehrte Frau Lietz, <br><br>\n\nanbei erhalten Sie die Rechnung für die letzte Trainingsveranstaltung. <br><br>\n\nHerzliche Grüße,<br><br>\n\nStefan Prorok",
+        "options": {
+          "attachments": "=data, report, ebill"
+        }
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        4608,
+        -512
+      ],
+      "id": "7c9720dd-d6fa-4d86-9980-97cdc85ecc89",
+      "name": "Send email",
+      "webhookId": "7d82f41e-2515-4c2e-ac75-23c29d8f0254",
+      "credentials": {
+        "smtp": {
+          "id": "pP99pAiPFkdg80MI",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "output[0].content[0].text",
+        "binaryPropertyName": "ebill",
+        "options": {
+          "fileName": "ebill.xml"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        3232,
+        -512
+      ],
+      "id": "7bc6360e-60a4-4897-a903-dee0dc3f4309",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        2992,
+        -512
+      ],
+      "id": "4745c52e-f0a4-4a28-ac60-fdbbf080bdf3",
+      "name": "Limit"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        800,
+        -560
+      ],
+      "id": "bbb54849-c610-48b1-8329-e4fd2e6479b9",
+      "name": "Limit1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        736,
+        -208
+      ],
+      "id": "75d6e151-1045-4850-85a3-680fcbb3511b",
+      "name": "Limit2"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  const raw = $input.first().json.output[0].content[0].text;\n\n  const sum = raw\n    .split(/\\s+/)          // split by spaces (works for multiple spaces too)\n    .map(n => parseFloat(n))\n    .filter(n => !isNaN(n))\n    .reduce((a, b) => a + b, 0);\n\n  return {\n    json: {\n      ...item.json,\n      sum,\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1840,
+        -144
+      ],
+      "id": "4ab45c27-a3de-47c6-981a-1ac565e17db2",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "content": "extract items",
+        "height": 80
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1472,
+        0
+      ],
+      "id": "8044bee2-e67a-44ec-8b3a-aedf1f4fa8c2",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://kosit-validator:8080",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/xml"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "ebill",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3440,
+        -688
+      ],
+      "id": "17b7fa80-76d2-467e-9c3d-24ee828a33c5",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "data",
+        "binaryPropertyName": "report",
+        "options": {
+          "fileName": "validation_report.html"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        3648,
+        -688
+      ],
+      "id": "b874059b-cc27-4668-ab07-1f2d9fca4c5a",
+      "name": "Convert to File1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "numberInputs": 3,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        4384,
+        -528
+      ],
+      "id": "aa498a2f-1aee-4077-8104-f6929c06257d",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "content": "put all fields together into one string",
+        "height": 80,
+        "width": 224
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2704,
+        -352
+      ],
+      "id": "2d169509-00db-4e3d-adb6-3d4f52fd6f19",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "content": "create the ebill xml file",
+        "height": 80,
+        "width": 208
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3152,
+        -352
+      ],
+      "id": "8cbc0395-d54f-4437-88d8-a59b40bfa6ed",
+      "name": "Sticky Note10"
+    },
+    {
+      "parameters": {
+        "content": "Perform the ebill validation",
+        "height": 80
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3472,
+        -816
+      ],
+      "id": "c22e25e0-9252-48ee-becd-7255ea4a0e99",
+      "name": "Sticky Note11"
+    },
+    {
+      "parameters": {
+        "content": "Send ebill, pdf and report by email",
+        "height": 80
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        4528,
+        -624
+      ],
+      "id": "03b626e4-11c7-4ced-a0c9-35b62e4d0693",
+      "name": "Sticky Note12"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://ebill_renderer:8000/convert_ebill",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/xml"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "ebill",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3600,
+        -240
+      ],
+      "id": "e5a192d9-3c33-4795-87b9-8acc7df7400f",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "jsCode": "for (const item of items) {\n  // rename the PDF binary called \"data\"\n  if (item.binary?.data) {\n    item.binary.data.fileName = 'Rechnung.pdf';\n    item.binary.data.fileExtension = 'pdf';\n    item.binary.data.mimeType = 'application/pdf';\n  }\n}\nreturn items;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3808,
+        -240
+      ],
+      "id": "2edb5634-32ea-4cd1-8d05-b17e5336b6db",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "content": "convert ebill to pdf file",
+        "height": 80,
+        "width": 208
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3584,
+        -352
+      ],
+      "id": "725adef1-940a-4c0f-9169-a52f9e550c89",
+      "name": "Sticky Note13"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Message a model1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Message a model3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model1": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Message a model2": {
+      "main": [
+        [
+          {
+            "node": "Message a model5",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Limit2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model3": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Limit1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model4": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model5": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model6": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit1": {
+      "main": [
+        [
+          {
+            "node": "Message a model4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit2": {
+      "main": [
+        [
+          {
+            "node": "Message a model2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Message a model6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Convert to File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send email": {
+      "main": [
+        []
+      ]
+    },
+    "Convert to File1": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "Send email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "e333e4ba-613f-4569-9a70-c941b6d3b05e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ce770e3f12ef7e8cb2717bd849e4267b11b9d48aaceb14738e643fdba7feabf3"
+  },
+  "id": "xU57YTMAHRuqP5Ej",
+  "tags": []
+}
