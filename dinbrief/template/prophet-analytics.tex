@@ -1,0 +1,182 @@
+%%
+%% This is file `example.tex',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% dinbrief.dtx  (with options: `example')
+%% 
+%% =======================================================================
+%% 
+%% Copyright (C) 1993, 96, 97 by University of Karlsruhe (Computing Center).
+%% Copyright (C) 1998, 2000   by University of Karlsruhe (Computing Center)
+%%                            and Richard Gussmann.
+%% All rights reserved.
+%% For additional copyright information see further down in this file.
+%% 
+%% This file is part of the DINBRIEF package
+%% -----------------------------------------------------------------------
+%% 
+%% It may be distributed under the terms of the LaTeX Project Public
+%% License (LPPL), as described in lppl.txt in the base LaTeX distribution.
+%% Either version 1.1 or, at your option, any later version.
+%% 
+%% The latest version of this license is in
+%% 
+%%         http://www.latex-project.org/lppl.txt
+%% 
+%% LPPL Version 1.1 or later is part of all distributions of LaTeX
+%% version 1999/06/01 or later.
+%% 
+%% 
+%% For error reports in case of UNCHANGED versions see readme files.
+%% 
+%% Please do not request updates from us directly.  Distribution is
+%% done through Mail-Servers, TeX organizations and others.
+%% 
+%% If you receive only some of these files from someone, complain!
+%% 
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+
+
+
+
+\documentclass[10pt]{dinbrief}
+
+\usepackage{german}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{booktabs,siunitx}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{eurosym}
+
+\input brfkopf_pa
+
+\pagestyle{contheadings}
+
+\sisetup{
+  locale = DE,
+  detect-weight = true,
+  detect-family = true,
+  output-decimal-marker = {,},
+  group-separator = {.},
+  group-minimum-digits = 4
+}
+
+\newcommand{\EURO}[1]{\num{#1}\,\euro}
+\renewcommand{\bottomtextvpos}{275truemm}
+\newcolumntype{Y}[1]{>{\raggedleft\arraybackslash}p{#1}}
+
+\begin{document}
+
+\bottomtext{%
+\hrule
+\tiny
+  \begin{center}
+\begin{tabular}{ p{5cm} p{5cm} p{5cm} }
+ <Name> & Geschäfsführung: & Kontoverbindung \\ 
+ <StreetName_abbrev> & Jens Mander & Kreissparkasse ABC \\  
+ <PostalZone> <CityName> & Monika Mander & IBAN: <ID.3> \\
+ Rechtsgericht: & Telefon: +49 123 3456 78& BIC: ABCBBXXX   \\
+ Amtsgericht Berlin & Email: jens.mander@abc.de & Steuernummer: <CompanyLegalForm>  \\
+<CompanyID.1> & Homepage: https://abc.de & USt-ID: <CompanyID> 
+\end{tabular}
+\end{center}
+\vspace{0.5cm}
+}
+
+\setlength{\topmargin}{-15pt}
+\backaddress{\FS}
+\centeraddress
+
+\begin{letter}{<ID.2>\\
+               <StreetName.1>\\
+               <PostalZone> <CityName.1>\\}
+
+\place{<CityName>}
+\date{<IssueDate>}
+
+\renewcommand{\yourmailmsg}{Ihr Zeichen: }
+\yourmail{<BuyerReference>}
+
+\renewcommand{\phonemsg}{}
+\phone{}{}
+
+\renewcommand{\signmsg}{Rechnungsnummer: }
+\sign{<ID>}
+
+
+
+\subject{\bf{Rechnung: Veranstaltung <BuyerReference>}}
+
+\opening{Sehr geehrte Damen und Herren,}
+
+hiermit stellen wir Ihnen für die erbrachte Trainingsleistung zur Veranstaltung <BuyerReference> folgende Beträge in Rechnung: 
+
+\renewcommand{\arraystretch}{1.6}
+
+\noindent
+\begin{tabularx}{\textwidth}{
+  l
+  X
+	c
+  %S[table-format=4.0]
+  Y{3cm}
+  Y{2.5cm}
+}
+\textbf{Position} &
+\textbf{Bezeichnung} &
+\textbf{Menge} &
+\textbf{Einzeln} &
+\textbf{Gesamt} \\
+\addlinespace[0.8em]
+
+<TableRows>
+
+\addlinespace[1em]
+\cline{4-5}
+{} & {} & {} & \multicolumn{1}{l}{Summe Netto}     & \EURO{<LineExtensionAmount>} \\
+
+\addlinespace[0.6em]
+%\cmidrule(lr){4-5}
+{} & {} & {} & \multicolumn{1}{l}{Umsatzsteuer <Percent>\,\%}       & \EURO{<TaxAmount>}  \\
+
+\addlinespace[0.6em]
+\cline{4-5}
+{} & {} & {} & \multicolumn{1}{l}{\textbf{Rechnungsbetrag}}  & {\bfseries \EURO{<PayableAmount>}} \\
+
+\end{tabularx}
+
+
+Bitte überweisen Sie den angegebenen Betrag gemäß Beauftragung innerhalb von 30 Tagen auf das unten angegebene Konto. Aufgrund der von Ihnen übermittelten Bescheinigung wird Ihnen keine Umsatzsteuer in Rechnung gestellt. Bitte informieren Sie uns rechtzeitig, falls sich an diesem Status etwas ändert. Wir bedanken uns nochmals für Ihre Bestellung und für die gute Zusammenarbeit.
+
+
+Mit freundlichen Gr"u"sen
+
+\includegraphics[scale=1]{signature_nobackground}
+
+Dr.-Ing. Stefan Prorok
+
+Geschäftsführer
+\end{letter}
+
+\end{document}
+\endinput
+%%
+%% End of file `example.tex'.

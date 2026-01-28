@@ -1,0 +1,31 @@
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    container_name: n8n
+    ports:
+      - "5678:5678"
+    environment:
+      GENERIC_TIMEZONE: "GMT"
+      TZ: "GMT"
+      N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: "true"
+      N8N_RUNNERS_ENABLED: "true"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    tty: true
+    stdin_open: true
+    
+  kosit-validator:
+    image: easybill/kosit-validator-xrechnung_3.0.2:v0.1.2
+    ports:
+      - "8081:8080"
+    restart: "no"
+      
+  ebill_renderer:
+    image: ${DOCKER_USERNAME}/ebill_renderer
+    ports:
+      - "8000:8000"
+    restart: "no"
+
+volumes:
+  n8n_data:
+    external: true
