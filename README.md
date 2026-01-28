@@ -1,3 +1,8 @@
+Short Description:
+
+This workflow uses docker and n8n to render ebills in the xbill format. It automatically validates the created files
+and renders a pdf file from the e-bill. Credentials for the OpenAI API are required to run this workflow inside n8n
+
 Usage:
 1. build the container in the "dinbrief" folder (modify latex files if you want to adjust the bill to your needs)
 2. Download n8n and validator containers (docker.n8n.io/n8nio/n8n and easybill/kosit-validator-xrechnung_3.0.2:v0.1.2)
